@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>95' Media Music Player</title>
+    <style>
+        /* Part 1: General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #1c1c1c, #333);
+            color: #fff;
+            text-align: center;
+            padding: 50px;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            transition: background-color 0.5s ease;
+        }
+
+        :root, body.dark-theme {
+            --primary-color: #FFD700;
+            --background-color: #1c1c1c;
+            --text-color: #fff;
+        }
+
+        body.dark-theme {
+            --background-color: #0a0a0a;
+            --text-color: #eee;
+        }
+
+        body {
+            background: var(--background-color);
+            color: var(--text-color);
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            font-family: 'Trebuchet MS', sans-serif;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+        }
+
+        /* Part 2: Playlist Styles */
+        .playlist {
+            width: 80%;
+            max-width: 700px;
+            height: 400px;
+            overflow-y: scroll;
+            background: #222;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 2px solid var(--primary-color);
+            padding: 10px;
+            text-align: left;
+        }
+
+        .playlist-item {
+            padding: 10px;
+            border-bottom: 1px solid #444;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .playlist-item:hover,
+        .playlist-item.active {
+            background-color: #333;
+            box-shadow: 0 0 10px 2px var(--primary-color);
+        }
+
+        .playlist-item span {
+            flex: 1;
+            text-align: left;
+        }
+
+        /* Part 3: Controls Styles */
+        .controls-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 80%;
+            max-width: 700px;
+            margin-top: 20px;
+        }
+
+        .main-controls {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .secondary-controls {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .secondary-controls>* {
+            margin: 5px;
+        }
+
+        .progress-bar-container {
+            flex-grow: 1;
+            margin: 0 10px;
+        }
+
+        .controls-container button {
+            margin: 5px;
+            padding: 10px 20px;
+            border-radius: 50%;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        .progress-bar-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .progress-container {
+            flex: 1;
+            height: 16px;
+            background-color: #666;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 0 10px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary-color), #FFA500);
+            width: 0;
+            transition: width 0.1s linear;
+        }
+
+        .seek-indicator {
+            position: absolute;
+            height: 20px;
+            width: 40px;
+            background-color: #FF0000;
+            color: white;
+            font-size: 14px;
+            line-height: 20px;
+            text-align: center;
+            border-radius: 5px;
+            display: none;
+            pointer-events: none;
+        }
+
+        .btn-circle {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            border-radius: 50%;
+            background: #007BFF;
+            color: white;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .btn-circle:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .btn-circle:active {
+            transform: scale(0.95);
+        }
+
+        #timeDisplay {
+            margin: 0 10px;
+            white-space: nowrap;
+        }
+
+        #trackName {
+            margin-top: 10px;
+        }
+
+        .controls-container button,
+        #themeSelect, #skinSelect {
+            margin: 5px;
+            padding: 5px 10px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .controls-container button:hover,
+        #themeSelect:hover, #skinSelect:hover {
+            transform: scale(1.05);
+        }
+
+        .controls-container button:active,
+        #themeSelect:active, #skinSelect:active {
+            transform: scale(0.95);
+        }
+
+
+
+        /* Part 4: Skin Styles */
+/* Skin Styles (Corrected - All in ONE place - with placeholder URLs) */
+        .skin-default { background-color: #282828; color: #e0e0e0; }
+        .skin-light { background-color: #f0f0f0; color: #333; }
+        .skin-retro { background-color: #332722; color: #f8f0e3; --primary-color: #fbb03b; }
+        .skin-dark-purple { background-color: #1a1224; color: #d0b8e8; --primary-color: #6d28d9; }
+        .skin-ocean-blue { background-color: #1E3A8A; color: #E0F2F7; --primary-color: #60A5FA; }
+
+        /* Placeholder URLs - REPLACE THESE */
+        .skin-camo { background-image: url("https://images.unsplash.com/photo-1608501821300-4f99e58bba77?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"); background-size: cover; background-repeat: no-repeat; }
+        .skin-floral { background-image: url("https://images.unsplash.com/photo-1507646871303-331b8f659227?q=80&w=2650&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"); background-size: cover; background-repeat: repeat; }
+        .skin-abstract { background-image: url("https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"); background-size: cover; }
+        .skin-grid { background-image: url("https://images.unsplash.com/photo-1602449007785-f4093ad2a80b?q=80&w=2700&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"); background-size: cover; background-repeat: repeat; }
+        .skin-wood { background-image: url("https://images.unsplash.com/photo-1463995439889-6cc080aaf7dd?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"); background-size: cover; }
+
+        /* Dark Mode Styles (Corrected - All in ONE place) */
+        body.dark-theme .skin-camo { filter: invert(1); }
+        body.dark-theme .skin-floral { filter: brightness(0.8); }
+        /* ... (Dark mode styles for other image-based skins) */
+
+ /* New Button Styles */
+        #link-to-second-app {
+            position: relative; /* For positioning the rainbow effect */
+            display: block; /* Make it full width */
+            width: 100%;
+            padding: 20px; /* Adjust padding as needed */
+            margin-top: 20px; /* Space from other content */
+            background-color: transparent; /* Transparent background */
+            border: none;
+            text-align: center;
+            text-decoration: none; /* Remove underline from link */
+            cursor: pointer;
+            overflow: hidden; /* Hide rainbow overflow */
+        }
+
+        #link-to-second-app span { /* The button text */
+            color: white; /* Or any color you prefer */
+            font-size: 1.2rem; /* Adjust font size */
+            position: relative; /* So it's above the rainbow */
+            z-index: 1; /* Ensure text is above rainbow effect */
+            transition: color 0.3s ease; /* Smooth color transition */
+        }
+
+        #link-to-second-app:hover span {
+            color: gold; /* Text color on hover */
+        }
+
+        .rainbow-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+            background-size: 400% 100%; /* Make gradient wider than button */
+            animation: rainbow-animation 5s linear infinite; /* Animate the gradient */
+            z-index: 0; /* Behind the text */
+            opacity: 0; /* Initially hidden */
+            transition: opacity 0.3s ease; /* Smooth fade-in */
+        }
+
+        #link-to-second-app:hover .rainbow-effect {
+            opacity: 1; /* Show on hover */
+        }
+
+        @keyframes rainbow-animation {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+</style>
+</head>
+
+<body>
+    <h1>95' Media Music Player</h1>
+    <div class="playlist" id="playlist">
+    </div>
+    <p id="trackName">No song selected</p>
+    <audio id="audioPlayer" preload="metadata"></audio>
+    <div class="controls-container">
+        <div class="main-controls">
+            <button id="playPause" class="btn-circle">▶</button>
+            <div class="progress-bar-container">
+                <span id="timeDisplay">0:00 / 0:00</span>
+                <div class="progress-container" onclick="seekAudio(event)" onmousemove="showSeekIndicator(event)"
+                    onmouseleave="hideSeekIndicator()">
+                    <div class="progress-bar"></div>
+                    <div class="seek-indicator" id="seekIndicator">0:00</div>
+                </div>
+            </div>
+            <span>Volume</span><input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+        </div>
+        <div class="secondary-controls">
+            <button id="shuffleButton">Shuffle</button>
+            <button id="repeatButton">Repeat</button>
+            <button id="rewindButton"> &lt;&lt; </button>
+            <button id="fastForwardButton"> &gt;&gt; </button>
+            
+            <select id="themeSelect">
+                <option value="gold">Gold</option>
+                <option value="blue">Blue</option>
+                <option value="green">Green</option>
+                <option value="purple">Purple</option>
+                <option value="red">Red</option>
+                <option value="orange">Orange</option>
+            </select>
+            <button id="themeButton">Toggle Theme</button>
+        </div>
+    </div>
+    <div id="loadingIndicator" style="display:none;">Loading...</div>
+
+ <a id="link-to-second-app" href="Advanced_Visualizer_Equalizer_v3.1.html" target="_blank">  <span>Check out our Visualizer App Here</span>
+        <div class="rainbow-effect"></div>
+    </a>
+
+<script> 
+document.addEventListener('DOMContentLoaded', () => {
+    const audio = document.getElementById('audioPlayer');
+    const playlist = document.getElementById('playlist');
+    const playlistItems = [];
+    const playPauseButton = document.getElementById('playPause');
+    const progressBar = document.querySelector('.progress-container > .progress-bar');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const seekIndicator = document.getElementById('seekIndicator');
+    const volumeControl = document.getElementById('volume');
+    const trackName = document.getElementById('trackName');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const themeSelect = document.getElementById('themeSelect');
+    const themeButton = document.getElementById('themeButton');
+    const shuffleButton = document.getElementById('shuffleButton');
+    const repeatButton = document.getElementById('repeatButton');
+    const rewindButton = document.getElementById('rewindButton');
+    const fastForwardButton = document.getElementById('fastForwardButton');
+    const skinSelect = document.getElementById('skinSelect');
+    const body = document.body;
+	const initialTheme = document.getElementById('themeSelect').value;
+   	const initialIsDarkTheme = document.body.classList.contains('dark-theme'); // Check if dark-theme class is already present (e.g., from local storage)
+    	applyTheme(initialTheme, initialIsDarkTheme);
+ 	
+const resetThemeButton = document.createElement('button');
+    resetThemeButton.textContent = "Reset Color/Theme";
+    resetThemeButton.id = "resetTheme";
+    document.querySelector('.secondary-controls').appendChild(resetThemeButton);
+	
+
+// Apply initial theme on load:
+    applyTheme();
+
+    themeSelect.addEventListener('change', applyTheme);
+
+    themeButton.addEventListener('click', () => {
+        document.body.classList.toggle('dark-theme'); // Toggle dark theme FIRST
+        applyTheme(); // THEN, re-apply the theme
+    });
+
+    resetThemeButton.addEventListener('click', () => {
+        themeSelect.value = 'gold';
+        document.body.classList.remove('dark-theme');
+        body.classList.remove(...skins);
+        body.classList.add('skin-default');
+        applyTheme();
+    });
+
+    function applyTheme() {
+        const selectedTheme = themeSelect.value;
+        let primaryColor;
+
+        switch (selectedTheme) {
+            case 'gold': primaryColor = '#FFD700'; break;
+            case 'blue': primaryColor = '#007BFF'; break;
+            case 'green': primaryColor = '#28a745'; break;
+            case 'purple': primaryColor = '#6f42c1'; break;
+            case 'red': primaryColor = '#dc3545'; break;
+            case 'orange': primaryColor = '#fd7e14'; break;
+            default: primaryColor = '#FFD700'; // Default to gold
+        }
+
+        document.documentElement.style.setProperty('--primary-color', primaryColor);
+
+        // This is the CRUCIAL part:
+        const isDarkTheme = document.body.classList.contains('dark-theme');
+        if (isDarkTheme) {
+            document.body.classList.add('dark-theme'); // Make sure it's applied
+        } else {
+            document.body.classList.remove('dark-theme'); // Make sure it's removed
+        }
+    }
+
+    let isPlaying = false;
+    let currentTrack = null;
+    let isShuffled = false;
+    let isRepeating = false;
+
+    const songs = [
+        { src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", title: "SoundHelix Song 1", artist: "Artist 1", duration: "3:45" },
+        { src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", title: "SoundHelix Song 2", artist: "Artist 2", duration: "4:20" },
+        { src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", title: "SoundHelix Song 3", artist: "Artist 3", duration: "4:00" },
+        { src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3", title: "SoundHelix Song 4", artist: "Artist 4", duration: "3:30" },
+        { src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3", title: "SoundHelix Song 5", artist: "Artist 5", duration: "5:00" },
+        { src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3", title: "SoundHelix Song 6", artist: "Artist 6", duration: "2:50" },
+        { src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3", title: "SoundHelix Song 7", artist: "Artist 7", duration: "4:10" },
+        { src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3", title: "SoundHelix Song 8", artist: "Artist 8", duration: "3:55" },
+        { src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3", title: "SoundHelix Song 9", artist: "Artist 9", duration: "3:40" },
+        { src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3", title: "SoundHelix Song 10", artist: "Artist 10", duration: "4:05" },
+        { src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3", title: "SoundHelix Song 11", artist: "Artist 11", duration: "4:15" },
+        { src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3", title: "SoundHelix Song 12", artist: "Artist 12", duration: "3:50" }
+    ];
+
+    songs.forEach((song, index) => {
+        const playlistItem = document.createElement('div');
+        playlistItem.classList.add('playlist-item');
+        playlistItem.dataset.src = song.src;
+       playlistItem.innerHTML = `<span>${index + 1}</span><span>${song.title}</span><span>${song.artist}</span><span>${song.duration}</span>`;
+        playlist.appendChild(playlistItem);
+        playlistItems.push(playlistItem);
+    });
+
+    audio.onloadeddata = () => {
+        audio.play();
+        playPauseButton.textContent = '⏸';
+        isPlaying = true;
+    };
+
+    playlistItems.forEach(item => {
+        item.addEventListener('click', function () {
+            playlistItems.forEach(el => el.classList.remove('active'));
+            this.classList.add('active');
+            currentTrack = this;
+
+            const newSrc = this.dataset.src;
+            if (newSrc !== audio.src) {
+                audio.src = newSrc;
+                trackName.textContent = this.querySelector('span:nth-child(2)').textContent;
+                audio.load();
+                audio.onloadeddata = () => {
+                    audio.play();
+                    playPauseButton.textContent = '⏸';
+                    isPlaying = true;
+                };
+            } else if (isPlaying) {
+                audio.pause();
+                playPauseButton.textContent = '▶';
+                isPlaying = false;
+            } else {
+                audio.play();
+                playPauseButton.textContent = '⏸';
+                isPlaying = true;
+            }
+        });
+    });
+
+    playPauseButton.addEventListener('click', () => {
+        if (currentTrack === null) return;
+
+        if (isPlaying) {
+            audio.pause();
+            playPauseButton.textContent = '▶';
+        } else {
+            audio.play();
+            playPauseButton.textContent = '⏸';
+        }
+        isPlaying = !isPlaying;
+    });
+
+     audio.addEventListener('timeupdate', () => {
+        const duration = audio.duration;
+        const currentTime = audio.currentTime;
+        if (!isNaN(duration) && !isNaN(currentTime)) {
+            timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+            const progress = (currentTime / duration) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+    });
+
+    function formatTime(seconds) {
+        const min = Math.floor(seconds / 60);
+        const sec = Math.floor(seconds % 60).toString().padStart(2, '0');
+        return `${min}:${sec}`;
+    }
+
+    volumeControl.addEventListener('input', () => {
+        audio.volume = volumeControl.value;
+    });
+
+     		function seekAudio(event) {
+    if (isNaN(audio.duration)) {
+        return; // Do nothing if duration is not available yet
+    }
+
+    const progressContainer = document.querySelector('.progress-container');
+    const rect = progressContainer.getBoundingClientRect();
+    const offsetX = event.clientX - rect.left;
+    const seekTime = (offsetX / rect.width) * audio.duration;
+
+    if (!isNaN(seekTime)) { // Ensure seekTime is also a valid number
+        audio.currentTime = seekTime;
+    }
+}
+
+// Attach the seekAudio function to the click event of the progress container:
+const progressContainer = document.querySelector('.progress-container');
+progressContainer.addEventListener('click', seekAudio);
+
+
+// Add an event listener for the 'loadedmetadata' event:
+audio.addEventListener('loadedmetadata', () => {
+    // Now that metadata (including duration) is loaded, seeking should work
+    // You can optionally update the timeDisplay here as well
+    const duration = audio.duration;
+    if (!isNaN(duration)) {
+      timeDisplay.textContent = `${formatTime(0)} / ${formatTime(duration)}`; // update to display the correct duration
+    }
+
+});
+
+    function showSeekIndicator(event) {
+        const rect = document.querySelector('.progress-container').getBoundingClientRect();
+        const offsetX = event.clientX - rect.left;
+        const timeAtMousePos = (offsetX / rect.width) * audio.duration;
+        seekIndicator.textContent = formatTime(timeAtMousePos);
+        seekIndicator.style.left = `${offsetX - seekIndicator.offsetWidth / 2}px`;
+        seekIndicator.style.display = 'block';
+    }
+
+    function hideSeekIndicator() {
+        seekIndicator.style.display = 'none';
+    }
+
+    shuffleButton.addEventListener('click', () => {
+        isShuffled = !isShuffled;
+        // Implement your shuffle logic here (modify playlist order)
+        if (isShuffled) {
+            // Example (visual shuffle only - you'll need to shuffle the data too):
+            const playlist = document.getElementById('playlist');
+            for (let i = playlist.children.length; i >= 0; i--) {
+                playlist.appendChild(playlist.children[Math.random() * i | 0]);
+            }
+        }
+    });
+
+    repeatButton.addEventListener('click', () => {
+        isRepeating = !isRepeating;
+        repeatButton.textContent = isRepeating ? "Loop" : "Repeat";
+        audio.loop = isRepeating; // Simple loop for now
+    });
+
+    rewindButton.addEventListener('click', () => {
+        audio.currentTime -= 5;
+    });
+
+    fastForwardButton.addEventListener('click', () => {
+        audio.currentTime += 5;
+    });
+
+    audio.addEventListener('loadstart', () => {
+        loadingIndicator.style.display = 'block';
+    });
+
+    audio.addEventListener('loadeddata', () => {
+        loadingIndicator.style.display = 'none';
+    });
+
+    audio.addEventListener('ended', () => {
+        let nextTrack = currentTrack.nextElementSibling;
+        if (!nextTrack) {
+            nextTrack = playlistItems[0];
+        }
+        nextTrack.click();
+    });
+const skins = [
+    'skin-default', 'skin-light', 'skin-retro', 'skin-dark-purple',
+    'skin-ocean-blue', 'skin-forest-green', 'skin-sunset-orange',
+    'skin-rose-pink', 'skin-space-gray', 'skin-midnight-purple',
+    'skin-sandy-beach', 'skin-icy-white', 'skin-rust-brown',
+    'skin-lime-green'
+];
+    themeSelect.addEventListener('change', () => {
+        const selectedTheme = themeSelect.value;
+        const isDarkTheme = document.body.classList.contains('dark-theme'); // Get current dark theme state
+        applyTheme(selectedTheme, isDarkTheme);
+    });
+
+    themeButton.addEventListener('click', () => {
+        document.body.classList.toggle('dark-theme');
+        const isDarkTheme = document.body.classList.contains('dark-theme');
+        const selectedTheme = document.getElementById('themeSelect').value;
+        applyTheme(selectedTheme, isDarkTheme); // Crucial: Reapply the theme!
+        toggleSkin(isDarkTheme);
+    });
+
+
+function toggleSkin(isDarkTheme) {
+    const body = document.body;
+    let currentSkinIndex = 0;
+
+    // Find the current skin index:
+    for (let i = 0; i < skins.length; i++) {
+        if (body.classList.contains(skins[i])) {
+            currentSkinIndex = i;
+            break;
+        }
+    }
+
+    // Remove current skin:
+    body.classList.remove(skins[currentSkinIndex]);
+
+    // Determine the next skin:
+    let nextSkinIndex;
+    if (isDarkTheme) {
+        // Dark theme skins (adjust as needed)
+        const darkSkins = ['skin-dark-purple', 'skin-midnight-purple', 'skin-space-gray', 'skin-rust-brown'];
+        nextSkinIndex = darkSkins[Math.floor(Math.random() * darkSkins.length)];
+    } else {
+        // Light theme skins (adjust as needed)
+        const lightSkins = ['skin-light', 'skin-sandy-beach', 'skin-icy-white', 'skin-lime-green'];
+        nextSkinIndex = lightSkins[Math.floor(Math.random() * lightSkins.length)];
+    }
+
+    // Add the next skin:
+    body.classList.add(nextSkinIndex);
+}
+
+
+    
+
+function setThemeColors(primary) {
+    document.documentElement.style.setProperty('--primary-color', primary);
+}
+
+
+skinSelect.addEventListener('change', () => {
+    const selectedSkin = skinSelect.value;
+    body.classList.remove('skin-default', 'skin-light', 'skin-retro', 'skin-dark-purple', 'skin-ocean-blue', 'skin-forest-green', 'skin-sunset-orange', 'skin-rose-pink', 'skin-space-gray', 'skin-midnight-purple', 'skin-sandy-beach', 'skin-icy-white', 'skin-rust-brown', 'skin-lime-green'); // Remove all skin classes
+    body.classList.add(`skin-${selectedSkin}`); // Add the selected skin
+
+    const isDarkTheme = body.classList.contains('dark-theme'); // Get current dark theme state
+    const selectedTheme = document.getElementById('themeSelect').value; // Get selected theme
+
+    applyTheme(selectedTheme, isDarkTheme); // Apply the theme colors NOW
+});
+
+
+});
+ const skinButton = document.createElement('button');
+            skinButton.textContent = "Change Skin";
+            skinButton.id = "skinButton";
+            document.querySelector('.secondary-controls').appendChild(skinButton);
+
+            const skins = [
+                'skin-default', 'skin-light', 'skin-retro', 'skin-dark-purple',
+                'skin-ocean-blue', 'skin-camo', 'skin-floral', 'skin-abstract', 'skin-grid', 'skin-wood'
+            ];
+
+            let currentSkinIndex = 0;
+
+            skinButton.addEventListener('click', () => {
+                document.body.classList.remove(...skins);
+                currentSkinIndex = (currentSkinIndex + 1) % skins.length;
+                document.body.classList.add(skins[currentSkinIndex]);
+            });
+
+            document.body.classList.add(skins[0]); // Initial skin (optional)
+   
+
+
+
+
+</script>
+
+</body>
+
+</html>

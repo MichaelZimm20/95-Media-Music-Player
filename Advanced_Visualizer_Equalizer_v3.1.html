@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Audio Visualizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: black;
+            color: white;
+            text-align: center;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: relative;
+        }
+        .controls {
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .button-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .visualizer-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 50vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+        }
+        button {
+            padding: 10px 20px;
+            background: #ff007f;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #cc0066;
+        }
+ /* New Button Styles */
+        #link-to-main-app {
+            position: relative; /* For positioning the rainbow effect */
+            display: block; /* Make it full width */
+            width: 100%;
+            padding: 20px; /* Adjust padding as needed */
+            margin-top: 20px; /* Space from other content */
+            background-color: transparent; /* Transparent background */
+            border: none;
+            text-align: center;
+            text-decoration: none; /* Remove underline from link */
+            cursor: pointer;
+            overflow: hidden; /* Hide rainbow overflow */
+        }
+
+        #link-to-main-app span { /* The button text */
+            color: white; /* Or any color you prefer */
+            font-size: 1.2rem; /* Adjust font size */
+            position: relative; /* So it's above the rainbow */
+            z-index: 1; /* Ensure text is above rainbow effect */
+            transition: color 0.3s ease; /* Smooth color transition */
+        }
+
+        #link-to-main-app:hover span {
+            color: gold; /* Text color on hover */
+        }
+
+        .rainbow-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+            background-size: 400% 100%; /* Make gradient wider than button */
+            animation: rainbow-animation 5s linear infinite; /* Animate the gradient */
+            z-index: 0; /* Behind the text */
+            opacity: 0; /* Initially hidden */
+            transition: opacity 0.3s ease; /* Smooth fade-in */
+        }
+
+        #link-to-main-app:hover .rainbow-effect {
+            opacity: 1; /* Show on hover */
+        }
+
+        @keyframes rainbow-animation {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Advanced Audio Visualizer</h1>
+    <div class="controls">
+        <input type="file" id="audioFile" accept="audio/*">
+        <audio id="audio" controls></audio>
+        <p id="songInfo">No file selected</p>
+    </div>
+    <div class="button-container">
+        <button id="toggleMode">Toggle Visualizer Mode</button>
+        <button id="changeColor">Change Bar Color</button>
+        <button id="fullScreen">Full Screen</button>
+        <label>EQ Filter: <select id="eqFilter">
+            <option value="none" selected>None</option>
+            <option value="lowpass">Low Pass</option>
+            <option value="highpass">High Pass</option>
+            <option value="reverb">Reverb</option>
+        </select></label>
+    </div>
+
+<a id="link-to-main-app" href="v3_test.html" target="_blank">  <span> &rarr; Go Back to the 95' Media Music Player App </span>
+        <div class="rainbow-effect"></div>
+    </a>
+    <div class="visualizer-container" id="visualizerContainer">
+        <canvas id="visualizer"></canvas>
+    </div>
+    
+    <script>
+        const audio = document.getElementById("audio");
+        const audioFile = document.getElementById("audioFile");
+        const songInfo = document.getElementById("songInfo");
+        const toggleModeBtn = document.getElementById("toggleMode");
+        const changeColorBtn = document.getElementById("changeColor");
+        const fullScreenBtn = document.getElementById("fullScreen");
+        const eqFilterSelect = document.getElementById("eqFilter");
+        const canvas = document.getElementById("visualizer");
+        const visualizerContainer = document.getElementById("visualizerContainer");
+        const ctx = canvas.getContext("2d");
+        let audioContext, source, analyser, filter;
+        let visualizerMode = 'bars';
+        let barColor = "rgba(255, 0, 127, 0.8)";
+
+        function resizeCanvas() {
+            const scaleFactor = window.devicePixelRatio || 1;
+            canvas.width = visualizerContainer.clientWidth * scaleFactor;
+            canvas.height = visualizerContainer.clientHeight * scaleFactor;
+            ctx.setTransform(scaleFactor, 0, 0, scaleFactor, 0, 0);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        window.addEventListener("resize", resizeCanvas);
+
+        audioFile.addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const objectURL = URL.createObjectURL(file);
+                audio.src = objectURL;
+                audio.load();
+                songInfo.textContent = file.name;
+                audio.play().catch(error => console.warn("Autoplay blocked: ", error));
+                if (!audioContext) {
+                    setupVisualizer();
+                }
+            }
+        });
+
+        function setupVisualizer() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                source = audioContext.createMediaElementSource(audio);
+                analyser = audioContext.createAnalyser();
+                filter = audioContext.createBiquadFilter();
+                filter.type = "allpass";
+                analyser.fftSize = 1024;
+                source.connect(filter);
+                filter.connect(analyser);
+                analyser.connect(audioContext.destination);
+            }
+            resizeCanvas();
+            draw();
+        }
+
+        function draw() {
+            requestAnimationFrame(draw);
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(dataArray);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (visualizerMode === 'bars') {
+                let barWidth = (canvas.width / bufferLength) * 1.5;
+                let x = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    const barHeight = (dataArray[i] / 255) * canvas.height;
+                    ctx.fillStyle = barColor;
+                    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 1;
+                }
+            } else {
+                ctx.beginPath();
+                ctx.moveTo(0, canvas.height);
+                for (let i = 0; i < bufferLength; i++) {
+                    const y = (dataArray[i] / 255) * canvas.height;
+                    ctx.lineTo(i * (canvas.width / bufferLength), canvas.height - y);
+                }
+                ctx.strokeStyle = barColor;
+                ctx.stroke();
+            }
+        }
+
+        changeColorBtn.addEventListener("click", () => {
+            barColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        });
+
+        toggleModeBtn.addEventListener("click", () => {
+            visualizerMode = visualizerMode === 'bars' ? 'waveform' : 'bars';
+        });
+
+        eqFilterSelect.addEventListener("change", () => {
+            filter.type = eqFilterSelect.value === "none" ? "allpass" : eqFilterSelect.value;
+        });
+    </script>
+</body>
+</html>
